@@ -1,0 +1,8 @@
+3f9c2ca85ec0e31c0054171a007cc108 *DESCRIPTION
+d9a2dd7543bd5264b0b8853de22ced74 *NAMESPACE
+8cc7a0587113c5fddb2d058c4783a259 *R/dhsic.R
+134a0d05f6613e29e22cec4043aaf1a3 *R/dhsic.test.R
+fd414296a9084a4b8fc45adb9b5e6039 *build/partial.rdb
+98f395486e1b076b45f2c3f5b77799a1 *man/dHSIC-package.Rd
+e0165b1b85a2edd419a61333fa329b07 *man/dhsic.Rd
+95c5515b17aa55091cb87341f91b2d98 *man/dhsic.test.Rd
