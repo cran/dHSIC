@@ -12,7 +12,7 @@
 }
 \usage{
 dhsic.test(X, Y, alpha = 0.05, method = "gamma",
-            kernel = "gaussian", B = 100, pairwise = FALSE)
+            kernel = "gaussian", B = 100, pairwise = FALSE, bandwidth = 1)
 }
 \arguments{
   \item{X}{
@@ -57,6 +57,10 @@ dhsic.test(X, Y, alpha = 0.05, method = "gamma",
     comparisons instead of dHSIC. Can only be true if there are more than
     two variables.
   }
+  \item{bandwidth}{
+    a numeric value specifying the size of the bandwidth used for the
+    Gaussian kernel. Only used if kernel="gaussian.fixed".
+  }
 }
 \details{
   The d-variable Hilbert Schmidt independence criterion is a direct
@@ -91,7 +95,10 @@ A list containing the following components:
   hypothesis (H_0: joint independence) based on the data.}
 \item{time}{numeric vector containing computation times. \code{time[1]} is time
   to compute Gram matrix, \code{time[2]} is time to compute dHSIC and
-  \code{time[3]} is the time to compute \code{crit.value} and \code{p.value.}}
+  \code{time[3]} is the time to compute \code{crit.value} and
+  \code{p.value.}}
+\item{bandwidth}{bandwidth used during the computation. Only relevant if
+Gaussian kernel was used.}
 }
 \references{
   Gretton, A., K. Fukumizu, C. H. Teo, L. Song, B. Sch{\"o}lkopf and
@@ -107,7 +114,8 @@ Niklas Pfister and Jonas Peters
 
 
 \seealso{
-  \code{\link{dhsic}}
+  In order to only compute the test statistic without p-values, use the
+  function \code{\link{dhsic}}.
 }
 
 \examples{

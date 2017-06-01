@@ -1,4 +1,4 @@
-dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", B = 100, pairwise = FALSE){
+dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", B = 100, pairwise = FALSE, bandwidth=1){
 # Copyright (c) 2010 - 2013  Jonas Peters  [peters@stat.math.ethz.ch]
 #                            Niklas Pfister [pfisteni@student.ethz.ch]
 # All rights reserved.  See the file COPYING for license terms. 
@@ -43,7 +43,7 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
     critVec <- rep(0,d-1)
     ptm <- proc.time()
     for(j in (d:2)){
-      resTmp <- dhsic.test(do.call("cbind", X[1:(j-1)]), X[[j]], alpha=alpha/(d-1), method = method, kernel = kernel, B = B, pairwise=FALSE)
+      resTmp <- dhsic.test(do.call("cbind", X[1:(j-1)]), X[[j]], alpha=alpha/(d-1), method = method, kernel = kernel, B = B, pairwise=FALSE, bandwidth=bandwidth)
       pValVec[d-j+1] <- resTmp$p.value
       statVec[d-j+1] <- resTmp$statistic
       critVec[d-j+1] <- resTmp$crit.value
@@ -88,13 +88,17 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
       test=list(statistic=0,
                 crit.value = Inf,
                 p.value = 1,
-                time = c(GramMat=0,dHSIC=0,CritVal=0))
+                time = c(GramMat=0,dHSIC=0,CritVal=0),
+                bandwidth=NA)
       return(test)
     }
     
     # Check if enough kernels where set given the number of variables (else only used first kernel)
     if(length(kernel)<d){
       kernel <- rep(kernel[1],d)
+    }
+    if(length(bandwidth)<d){
+      bandwidth <- rep(bandwidth[1],d)
     }
     
     # Define median heuristic bandwidth function
@@ -137,7 +141,6 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
       }
       return(KX)
     }
-    
     # Define custom kernel Gram-matrix
     custom_grammat <- function(x,fun){
       KX <- matrix(nrow=len,ncol=len)
@@ -154,17 +157,21 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
     # Compute Gram-matrix (using specified kernels)
     ###
     K <- vector("list", d)
-    bandwidth <- vector("numeric",d)
     ptm <- proc.time()
     for(j in 1:d){
       if(kernel[j]=="gaussian"){
         bandwidth[j] <- median_bandwidth(X[[j]])
         K[[j]] <- gaussian_grammat(X[[j]],bandwidth[j])
       }
+      else if(kernel[j]=="gaussian.fixed"){
+        K[[j]] <- gaussian_grammat(X[[j]],bandwidth[j])
+      }
       else if(kernel[j]=="discrete"){
+        bandwidth[j] <- NA
         K[[j]] <- discrete_grammat(X[[j]])
       }
       else{
+        bandwidth[j] <- NA
         K[[j]] <- custom_grammat(X[[j]],kernel[j])
       }
     }
@@ -200,7 +207,7 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
         term3 <- 2/len^2*colSums(K[[1]])
         for (j in 2:d){
           X_perm <- matrix(X[[j]][sample(len,replace=FALSE),],nrow=len)
-          if(kernel[j]=="gaussian"){
+          if(kernel[j]=="gaussian"||kernel[j]=="gaussian.fixed"){
             K_perm <- gaussian_grammat(X_perm,bandwidth[j])
           }
           else if(kernel[j]=="discrete"){
@@ -241,7 +248,7 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
         term3 <- 2/len^2*colSums(K[[1]])
         for (j in 2:d){
           X_boot <- matrix(X[[j]][sample(len,replace=TRUE),],nrow=len)
-          if(kernel[j]=="gaussian"){
+          if(kernel[j]=="gaussian"||kernel[j]=="gaussian.fixed"){
             K_boot <- gaussian_grammat(X_boot,bandwidth[j])
           }
           else if(kernel[j]=="discrete"){
@@ -395,7 +402,8 @@ dhsic.test <- function(X, Y, alpha=0.05, method = "gamma", kernel = "gaussian", 
   test=list(statistic=stat,
             crit.value = critical_value,
             p.value = p_value,
-            time = c(GramMat=timeGramMat,dHSIC=timeHSIC,CritVal=timeCritVal))
+            time = c(GramMat=timeGramMat,dHSIC=timeHSIC,CritVal=timeCritVal),
+            bandwidth=bandwidth)
   
   return(test)
 }

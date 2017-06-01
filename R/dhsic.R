@@ -1,9 +1,9 @@
-dhsic <- function(X, Y, kernel = "gaussian"){
+dhsic <- function(X, Y, kernel = "gaussian", bandwidth=1){
 # Copyright (c) 2010 - 2013  Jonas Peters  [peters@stat.math.ethz.ch]
 #                            Niklas Pfister [pfisteni@student.ethz.ch]
 # All rights reserved.  See the file COPYING for license terms. 
 
-  # outputs the empirical pHSIC
+  # outputs the empirical dHSIC
 
   ###
   # Prerequisites
@@ -35,6 +35,9 @@ dhsic <- function(X, Y, kernel = "gaussian"){
   # Check if enough kernels where set given the number of variables (else only used first kernel)
   if(length(kernel)<d){
     kernel <- rep(kernel[1],d)
+  }
+  if(length(bandwidth)<d){
+    bandwidth <- rep(bandwidth[1],d)
   }
   
   # Define median heuristic bandwidth function
@@ -87,13 +90,19 @@ dhsic <- function(X, Y, kernel = "gaussian"){
   ptm <- proc.time()
   for(j in 1:d){
     if(kernel[j]=="gaussian"){
-      bandwidth <- median_bandwidth(X[[j]])
-      K[[j]] <- gaussian_grammat(X[[j]],bandwidth)
+      bandwidth[j] <- median_bandwidth(X[[j]])
+      K[[j]] <- gaussian_grammat(X[[j]],bandwidth[j])
+    }
+    else if(kernel[j]=="gaussian.fixed"){
+      bandwidth[j] <- bandwidth
+      K[[j]] <- gaussian_grammat(X[[j]],bandwidth[j])
     }
     else if(kernel[j]=="discrete"){
+      bandwidth[j] <- NA
       K[[j]] <- discrete_grammat(X[[j]])
     }
     else{
+      bandwidth[j] <- NA
       K[[j]] <- custom_grammat(X[[j]],kernel[j])
     }
   }
@@ -120,7 +129,8 @@ dhsic <- function(X, Y, kernel = "gaussian"){
   # Collect result
   ###
   result=list(dHSIC = dHSIC,
-              time = c(GramMat=timeGramMat,HSIC=timeHSIC))
+              time = c(GramMat=timeGramMat,HSIC=timeHSIC),
+              bandwidth=bandwidth)
   
   return(result)
 

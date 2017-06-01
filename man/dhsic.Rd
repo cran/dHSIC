@@ -12,7 +12,7 @@
   given a sufficient amount of data.
 }
 \usage{
-dhsic(X, Y, kernel = "gaussian")
+dhsic(X, Y, kernel = "gaussian", bandwidth = 1)
 }
 \arguments{
   \item{X}{
@@ -37,6 +37,10 @@ dhsic(X, Y, kernel = "gaussian")
     smaller than the number of variables the kernel specified in
     \code{kernel[1]} will be used for all variables.
   }
+  \item{bandwidth}{
+    a numeric value specifying the size of the bandwidth used for the
+    Gaussian kernel. Only used if kernel="gaussian.fixed".
+  }
 }
 \details{
   The d-variable Hilbert Schmidt independence criterion is a direct
@@ -56,6 +60,8 @@ A list containing the following components:
 \item{time}{numeric vector containing computation times. \code{time[1]}
   is time to compute Gram matrix and \code{time[2]} is time to compute
   dHSIC.}
+\item{bandwidth}{bandwidth used during computations. Only relevant if
+Gaussian kernel was used.}
 }
 \references{
   Gretton, A., K. Fukumizu, C. H. Teo, L. Song, B. Sch{\"o}lkopf and
@@ -72,7 +78,7 @@ Niklas Pfister and Jonas Peters
 
 
 \seealso{
-  \code{\link{dhsic.test}}
+  In order to perform hypothesis tests based on dHSIC use the function \code{\link{dhsic.test}}.
 }
 
 \examples{
