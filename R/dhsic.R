@@ -1,5 +1,5 @@
-dhsic <- function(X, Y, kernel = "gaussian", bandwidth=1){
-# Copyright (c) 2010 - 2013  Jonas Peters  [peters@stat.math.ethz.ch]
+dhsic <- function(X, Y, K, kernel = "gaussian", bandwidth=1, matrix.input=FALSE){
+# Copyright (c) 2010 - 2017  Jonas Peters  [peters@stat.math.ethz.ch]
 #                            Niklas Pfister [pfisteni@student.ethz.ch]
 # All rights reserved.  See the file COPYING for license terms. 
 
@@ -8,106 +8,112 @@ dhsic <- function(X, Y, kernel = "gaussian", bandwidth=1){
   ###
   # Prerequisites
   ###
-  
-  # Check if Y has been passed as argument (implies two variable case)
-  if(!missing(Y)){
-     X <- list(X,Y)
-  }
+
+  # Check whether gram matrices have been specified in K and compute them if not
+  if(missing(K)){
+    # Check if Y has been passed as argument (implies two variable case)
+    if(!missing(Y)){
+      X <- list(X,Y)
+    }
+    
+    # Deal with matrix input
+    if(matrix.input){
+      if(!is.matrix(X)){
+        stop("X needs to be a matrix if matrix.input=TRUE")
+      }
+      else{
+        X <- split(X, rep(1:ncol(X), each = nrow(X)))
+      }
+    }    
       
-  # Set d, convert to matricies and set len
-  d <- length(X)
-  for(j in 1:d){
-    if(is.matrix(X[[j]])==FALSE){
-      X[[j]] <- as.matrix(X[[j]])
+    # Set d, convert to matricies and set len
+    d <- length(X)
+    for(j in 1:d){
+      if(is.matrix(X[[j]])==FALSE){
+        X[[j]] <- as.matrix(X[[j]])
+      }
+    }     
+    len <- nrow(X[[1]])
+    
+    # Case: len<2d
+    if(len<2*d){
+      warning("Sample size is smaller than twice the number of variables. dHSIC is trivial.")
+      result=list(dHSIC = 0,
+                  time = c(GramMat=0,HSIC=0))
+      return(result)
     }
-  }     
-  len <- nrow(X[[1]])
   
-  # Case: len<2d
-  if(len<2*d){
-    warning("Sample size is smaller than twice the number of variables. dHSIC is trivial.")
-    result=list(dHSIC = 0,
-                time = c(GramMat=0,HSIC=0))
-    return(result)
-  }
-  
-  
-  # Check if enough kernels where set given the number of variables (else only used first kernel)
-  if(length(kernel)<d){
-    kernel <- rep(kernel[1],d)
-  }
-  if(length(bandwidth)<d){
-    bandwidth <- rep(bandwidth[1],d)
-  }
-  
-  # Define median heuristic bandwidth function
-  median_bandwidth <- function(x){
-    xnorm <- as.matrix(dist(x,method="euclidean",diag=TRUE,upper=TRUE))
-    if(len>1000){
-      sam <- sample(1:len,1000)
-      xhilf <- xnorm[sam,sam]
+    
+    # Check if enough kernels where set given the number of variables (else only used first kernel)
+    if(length(kernel)<d){
+      kernel <- rep(kernel[1],d)
     }
-    else{
-      xhilf <- xnorm
+    if(length(bandwidth)<d){
+      bandwidth <- rep(bandwidth[1],d)
     }
-    bandwidth <- sqrt(0.5*median(xhilf[lower.tri(xhilf,diag=FALSE)]^2))
-    if(bandwidth==0){
-      bandwidth <- 0.001
-    }
-    return(bandwidth)
-  }
-  # Define Gaussian Gram-matrix
-  gaussian_grammat <- function(x,bandwidth){
-    xnorm <- as.matrix(dist(x,method="euclidean",diag=TRUE,upper=TRUE))
-    xnorm <- xnorm^2
-    KX <- exp(-xnorm/(2*bandwidth^2))
-    return(KX)
-  }
-  # Define discrete kernel Gram-matrix
-  discrete_grammat <- function(x){
-    temp <- matrix(rep(x,len),ncol=len)
-    KX <- ((temp-t(temp))==0)*1
-    return(KX)
-  }
   
-  # Define custom kernel Gram-matrix
-  custom_grammat <- function(x,fun){
-    KX <- matrix(nrow=len,ncol=len)
-    for (i in 1:len){
-      for (j in i:len){
-        KX[i,j] <- match.fun(fun)(x[i,],x[j,])
-        KX[j,i] <- KX[i,j]
+    # Define median heuristic bandwidth function
+    median_bandwidth <- function(x){
+      bandwidth <- median_bandwidth_rcpp(x[sample(1:len),,drop=FALSE],len,ncol(x))
+      if(bandwidth==0){
+        bandwidth <- 0.001
+      }
+      return(bandwidth)
+    }
+    ## # Define discrete kernel Gram-matrix
+    ## discrete_grammat <- function(x){
+    ##   temp <- matrix(rep(x,len),ncol=len)
+    ##   KX <- ((temp-t(temp))==0)*1
+    ##   return(KX)
+    ## }
+  
+    # Define custom kernel Gram-matrix
+    custom_grammat <- function(x,fun){
+      KX <- matrix(nrow=len,ncol=len)
+      for (i in 1:len){
+        for (j in i:len){
+          KX[i,j] <- match.fun(fun)(x[i,],x[j,])
+          KX[j,i] <- KX[i,j]
+        }
+      }
+      return(KX)
+    }
+  
+    ###
+    # Compute Gram-matrix (using specified kernels)
+    ###
+    K <- vector("list", d)
+    ptm <- proc.time()
+    for(j in 1:d){
+      if(kernel[j]=="gaussian"){
+        bandwidth[j] <- median_bandwidth(X[[j]])
+        K[[j]] <- gaussian_grammat_rcpp(X[[j]],bandwidth[j],len,ncol(X[[j]]))
+      }
+      else if(kernel[j]=="gaussian.fixed"){
+        K[[j]] <- gaussian_grammat_rcpp(X[[j]],bandwidth[j],len,ncol(X[[j]]))
+      }
+      else if(kernel[j]=="discrete"){
+        bandwidth[j] <- NA
+        K[[j]] <- discrete_grammat_rcpp(X[[j]],len,ncol(X[[j]]))
+      }
+      else{
+        bandwidth[j] <- NA
+        K[[j]] <- custom_grammat(X[[j]],kernel[j])
       }
     }
-    return(KX)
+    timeGramMat <- as.numeric((proc.time() - ptm)[1])
   }
-  
-
-  ###
-  # Compute Gram-matrix (using specified kernels)
-  ###
-  K <- vector("list", d)
-  ptm <- proc.time()
-  for(j in 1:d){
-    if(kernel[j]=="gaussian"){
-      bandwidth[j] <- median_bandwidth(X[[j]])
-      K[[j]] <- gaussian_grammat(X[[j]],bandwidth[j])
-    }
-    else if(kernel[j]=="gaussian.fixed"){
-      bandwidth[j] <- bandwidth
-      K[[j]] <- gaussian_grammat(X[[j]],bandwidth[j])
-    }
-    else if(kernel[j]=="discrete"){
-      bandwidth[j] <- NA
-      K[[j]] <- discrete_grammat(X[[j]])
+  else{
+    # check if K is a list
+    if(is.list(K)){
+      d <- length(K)
+      len <- nrow(K)
     }
     else{
-      bandwidth[j] <- NA
-      K[[j]] <- custom_grammat(X[[j]],kernel[j])
+      stop("K needs to be a list of matrices")
     }
   }
-  timeGramMat <- as.numeric((proc.time() - ptm)[1])
-
+  
   ###
   # Compute dHSIC
   ###

@@ -33,9 +33,9 @@ Maintainer: \packageMaintainer{dHSIC}
   A. J. Smola (2007). A kernel statistical test of independence. In
   Advances in Neural Information Processing Systems (pp. 585-592).
   
-  Pfister, N., P. B{\"u}hlmann, B. Sch{\"o}lkopf and J. Peters (2016).
-  Kernel-based Tests for Joint Independence. ArXiv e-prints
-  (1603.00285).
+  Pfister, N., P. B{\"u}hlmann, B. Sch{\"o}lkopf and J. Peters (2017).
+  Kernel-based Tests for Joint Independence. To appear in the
+  Journal of the Royal Statistical Society, Series B.
 }
 
 \keyword{ package }

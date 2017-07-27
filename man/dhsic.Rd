@@ -12,7 +12,7 @@
   given a sufficient amount of data.
 }
 \usage{
-dhsic(X, Y, kernel = "gaussian", bandwidth = 1)
+dhsic(X, Y, K, kernel = "gaussian", bandwidth = 1, matrix.input = FALSE)
 }
 \arguments{
   \item{X}{
@@ -21,11 +21,17 @@ dhsic(X, Y, kernel = "gaussian", bandwidth = 1)
     variable. It is always required that there are an equal number of
     observations for all variables (i.e. all matrices have to have the
     same number of rows). If \code{X} is a single numeric matrix than
-    one has to specify the second variable as \code{Y}.
+    one has to specify the second variable as \code{Y} or set
+    \code{matrix.input} to "TRUE". See below for more details.
   }
   \item{Y}{
     a numeric matrix if \code{X} is also a numeric
     matrix and omitted if \code{X} is a list.
+  }
+  \item{K}{
+    a list of the gram matrices corresponding to each variable. If
+    \code{K} specified the other inputs will have no effect on the
+    computations.
   }
   \item{kernel}{
     a vector of character strings specifying the kernels for each
@@ -41,6 +47,10 @@ dhsic(X, Y, kernel = "gaussian", bandwidth = 1)
     a numeric value specifying the size of the bandwidth used for the
     Gaussian kernel. Only used if kernel="gaussian.fixed".
   }
+  \item{matrix.input}{
+    a boolean. If \code{matrix.input} is "TRUE" the input \code{X} is
+    assumed to be a matrix in which the columns correspond to the variables.
+  }
 }
 \details{
   The d-variable Hilbert Schmidt independence criterion is a direct
@@ -51,6 +61,13 @@ dhsic(X, Y, kernel = "gaussian", bandwidth = 1)
   converges to the actual dHSIC in the large sample limit. It is
   therefore possible to detect any type of dependence in the large
   sample limit.
+
+  If \code{X} is a list with d matrices, the function computes dHSIC for
+  the corresponding d random vectors. If \code{X} is a
+  matrix and \code{matrix.input} is "TRUE" the functions dHSIC for the
+  columns of \code{X}. If \code{X} is a matrix and \code{matrix.input}
+  is "FALSE" then \code{Y} needs to be a matrix, too; in this case, the
+  function computes the dHSIC (HSIC) for the corresponding two random vectors.
   
   For more details see the references.
 }
@@ -68,9 +85,9 @@ Gaussian kernel was used.}
   A. J. Smola (2007). A kernel statistical test of independence. In
   Advances in Neural Information Processing Systems (pp. 585-592).
   
-  Pfister, N., P. B{\"u}hlmann, B. Sch{\"o}lkopf and J. Peters (2016).
-  Kernel-based Tests for Joint Independence. ArXiv e-prints
-  (1603.00285).
+  Pfister, N., P. B{\"u}hlmann, B. Sch{\"o}lkopf and J. Peters (2017).
+  Kernel-based Tests for Joint Independence. To appear in the
+  Journal of the Royal Statistical Society, Series B.
 }
 \author{
 Niklas Pfister and Jonas Peters
@@ -82,12 +99,15 @@ Niklas Pfister and Jonas Peters
 }
 
 \examples{
-### Two different input methods
+### Three different input methods
 set.seed(0)
 x <- matrix(rnorm(200),ncol=2)
 y <- matrix(rbinom(100,30,0.1),ncol=1)
+# compute dHSIC of x and y (x is taken as a single variable)
 dhsic(list(x,y),kernel=c("gaussian","discrete"))$dHSIC
 dhsic(x,y,kernel=c("gaussian","discrete"))$dHSIC
+# compute dHSIC of x[,1], x[,2] and y
+dhsic(cbind(x,y),kernel=c("gaussian","discrete"), matrix.input=TRUE)$dHSIC
 
 ### Using a user-defined kernel (here: sigmoid kernel)
 set.seed(0)

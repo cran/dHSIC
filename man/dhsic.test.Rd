@@ -11,8 +11,9 @@
   hypothesis (H_0) is that all variables are jointly independent.
 }
 \usage{
-dhsic.test(X, Y, alpha = 0.05, method = "gamma",
-            kernel = "gaussian", B = 100, pairwise = FALSE, bandwidth = 1)
+dhsic.test(X, Y, K, alpha = 0.05, method = "permutation",
+            kernel = "gaussian", B = 1000, pairwise = FALSE,
+            bandwidth = 1, matrix.input = FALSE)
 }
 \arguments{
   \item{X}{
@@ -21,11 +22,18 @@ dhsic.test(X, Y, alpha = 0.05, method = "gamma",
     variable. It is always required that there are an equal number of
     observations for all variables (i.e. all matrices have to have the
     same number of rows). If \code{X} is a single numeric matrix than
-    one has to specify the second variable as \code{Y}.
+    one has to specify the second variable as \code{Y} or set
+    \code{matrix.input} to "TRUE". See below for more details.
   }
   \item{Y}{
     a numeric matrix if \code{X} is also a numeric
     matrix and omitted if \code{X} is a list.
+  }
+  \item{K}{
+    a list of the gram matrices corresponding to each variable. If
+    \code{K} the following inputs \code{X}, \code{Y}, \code{kernel},
+    \code{pairwise}, \code{bandwidth} and \code{matrix.input} will be
+    ignored.
   }
   \item{alpha}{
     a numeric value in (0,1) specifying the confidence level of the
@@ -61,6 +69,10 @@ dhsic.test(X, Y, alpha = 0.05, method = "gamma",
     a numeric value specifying the size of the bandwidth used for the
     Gaussian kernel. Only used if kernel="gaussian.fixed".
   }
+  \item{matrix.input}{
+    a boolean. If \code{matrix.input} is "TRUE" the input \code{X} is
+    assumed to be a matrix in which the columns correspond to the variables.
+  }
 }
 \details{
   The d-variable Hilbert Schmidt independence criterion is a direct
@@ -80,6 +92,14 @@ dhsic.test(X, Y, alpha = 0.05, method = "gamma",
 
   The null hypothesis is rejected if \code{statistic} is strictly
   greater than \code{crit.value}.
+
+  If \code{X} is a list with d matrices, the function tests for joint
+  independence of the corresponding d random vectors. If \code{X} is a
+  matrix and \code{matrix.input} is "TRUE" the functions tests the
+  independence between the columns of \code{X}. If \code{X} is a matrix
+  and \code{matrix.input} is "FALSE" then \code{Y} needs to be a matrix,
+  too; in this case, the function tests the (pairwise) independence
+  between the corresponding two random vectors.
   
   For more details see the references.
 }
@@ -105,8 +125,9 @@ Gaussian kernel was used.}
   A. J. Smola (2007). A kernel statistical test of independence. In
   Advances in Neural Information Processing Systems (pp. 585-592).
   
-  Pfister, N., P. B{\"u}hlmann, B. Sch{\"o}lkopf and J. Peters (2016).
-  Kernel-based Tests for Joint Independence. ArXiv e-prints (1603.00285).
+  Pfister, N., P. B{\"u}hlmann, B. Sch{\"o}lkopf and J. Peters (2017).
+  Kernel-based Tests for Joint Independence. To appear in the
+  Journal of the Royal Statistical Society, Series B.
 }
 \author{
 Niklas Pfister and Jonas Peters
@@ -124,12 +145,14 @@ set.seed(0)
 x <- matrix(rbinom(100,1,0.5),ncol=1)
 y <- matrix(rbinom(100,1,0.5),ncol=1)
 z <- matrix(as.numeric((x+y)==1)+rnorm(100),ncol=1)
-X <- list(x,z,y)
+X <- list(x,y,z)
 
 dhsic.test(X, method="permutation",
-           kernel="gaussian", pairwise=TRUE,B=1000)$p.value
+           kernel=c("discrete", "discrete", "gaussian"),
+           pairwise=TRUE, B=1000)$p.value
 dhsic.test(X, method="permutation",
-           kernel="gaussian", pairwise=FALSE,B=1000)$p.value
+           kernel=c("discrete", "discrete", "gaussian"),
+           pairwise=FALSE, B=1000)$p.value
 
 }
 

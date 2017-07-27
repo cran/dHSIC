@@ -1,2 +1,5 @@
-exportPattern("^[[:alpha:]]+")
-importFrom("stats", "dist", "ecdf", "median", "pgamma", "qgamma", "quantile", "rnorm")
+export(dhsic)
+export(dhsic.test)
+import(stats)
+useDynLib(dHSIC, .registration = TRUE)
+importFrom(Rcpp, sourceCpp)
