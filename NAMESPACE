@@ -1,5 +1,5 @@
 export(dhsic)
 export(dhsic.test)
-import(stats)
-useDynLib(dHSIC, .registration = TRUE)
-importFrom(Rcpp, sourceCpp)
+useDynLib(dHSIC, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+importFrom(stats, ecdf, pgamma, qgamma, quantile, rnorm)

@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // gaussian_grammat_rcpp
 NumericMatrix gaussian_grammat_rcpp(NumericMatrix x, double bandwidth, int n, int d);
-RcppExport SEXP dHSIC_gaussian_grammat_rcpp(SEXP xSEXP, SEXP bandwidthSEXP, SEXP nSEXP, SEXP dSEXP) {
+RcppExport SEXP _dHSIC_gaussian_grammat_rcpp(SEXP xSEXP, SEXP bandwidthSEXP, SEXP nSEXP, SEXP dSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,7 +21,7 @@ END_RCPP
 }
 // discrete_grammat_rcpp
 NumericMatrix discrete_grammat_rcpp(NumericMatrix x, int n, int d);
-RcppExport SEXP dHSIC_discrete_grammat_rcpp(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP) {
+RcppExport SEXP _dHSIC_discrete_grammat_rcpp(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,7 +34,7 @@ END_RCPP
 }
 // shuffle_grammat_rcpp
 NumericMatrix shuffle_grammat_rcpp(NumericMatrix K, NumericVector perm, int n);
-RcppExport SEXP dHSIC_shuffle_grammat_rcpp(SEXP KSEXP, SEXP permSEXP, SEXP nSEXP) {
+RcppExport SEXP _dHSIC_shuffle_grammat_rcpp(SEXP KSEXP, SEXP permSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -47,7 +47,7 @@ END_RCPP
 }
 // median_bandwidth_rcpp
 double median_bandwidth_rcpp(NumericMatrix x, int n, int d);
-RcppExport SEXP dHSIC_median_bandwidth_rcpp(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP) {
+RcppExport SEXP _dHSIC_median_bandwidth_rcpp(SEXP xSEXP, SEXP nSEXP, SEXP dSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -57,4 +57,17 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(median_bandwidth_rcpp(x, n, d));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_dHSIC_gaussian_grammat_rcpp", (DL_FUNC) &_dHSIC_gaussian_grammat_rcpp, 4},
+    {"_dHSIC_discrete_grammat_rcpp", (DL_FUNC) &_dHSIC_discrete_grammat_rcpp, 3},
+    {"_dHSIC_shuffle_grammat_rcpp", (DL_FUNC) &_dHSIC_shuffle_grammat_rcpp, 3},
+    {"_dHSIC_median_bandwidth_rcpp", (DL_FUNC) &_dHSIC_median_bandwidth_rcpp, 3},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_dHSIC(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

@@ -128,23 +128,7 @@ dhsic.test <- function(X, Y, K, alpha=0.05, method = "permutation", kernel = "ga
         }
         return(bandwidth)
       }
-      ## # Define discrete kernel Gram-matrix
-      ## discrete_grammat <- function(x){
-      ##   cols <- ncol(x)
-      ##   if(cols>1){
-      ##     temp <- matrix(rep(x[,1],len),ncol=len)
-      ##     KX <- ((temp-t(temp))==0)*1 
-      ##     for(i in 2:cols){
-      ##       temp <- matrix(rep(x[,i],len),ncol=len)
-      ##       KX <- KX*(((temp-t(temp))==0)*1)
-      ##     }
-      ##   }
-      ##   else{
-      ##     temp <- matrix(rep(x,len),ncol=len)
-      ##     KX <- ((temp-t(temp))==0)*1 
-      ##   }
-      ##   return(KX)
-      ## }
+
       # Define custom kernel Gram-matrix
       custom_grammat <- function(x,fun){
         KX <- matrix(nrow=len,ncol=len)
@@ -185,7 +169,8 @@ dhsic.test <- function(X, Y, K, alpha=0.05, method = "permutation", kernel = "ga
       # check if K is a list
       if(is.list(K)){
         d <- length(K)
-        len <- nrow(K)
+        len <- nrow(K[[1]])
+        timeGramMat <- NA
       }
       else{
         stop("K needs to be a list of matrices")

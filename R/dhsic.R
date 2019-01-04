@@ -60,12 +60,6 @@ dhsic <- function(X, Y, K, kernel = "gaussian", bandwidth=1, matrix.input=FALSE)
       }
       return(bandwidth)
     }
-    ## # Define discrete kernel Gram-matrix
-    ## discrete_grammat <- function(x){
-    ##   temp <- matrix(rep(x,len),ncol=len)
-    ##   KX <- ((temp-t(temp))==0)*1
-    ##   return(KX)
-    ## }
   
     # Define custom kernel Gram-matrix
     custom_grammat <- function(x,fun){
@@ -107,7 +101,8 @@ dhsic <- function(X, Y, K, kernel = "gaussian", bandwidth=1, matrix.input=FALSE)
     # check if K is a list
     if(is.list(K)){
       d <- length(K)
-      len <- nrow(K)
+      len <- nrow(K[[1]])
+      timeGramMat <- NA
     }
     else{
       stop("K needs to be a list of matrices")
