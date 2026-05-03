@@ -3,7 +3,7 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-NumericMatrix gaussian_grammat_rcpp(NumericMatrix x, double bandwidth, int n, int d){
+NumericMatrix gaussian_grammat_rcpp(const NumericMatrix x, double bandwidth, int n, int d){
   double xnorm = 0;
   NumericMatrix K(n,n);
   for(int i = 0; i < n; ++i){
@@ -23,16 +23,16 @@ NumericMatrix gaussian_grammat_rcpp(NumericMatrix x, double bandwidth, int n, in
 
 
 // [[Rcpp::export]]
-NumericMatrix discrete_grammat_rcpp(NumericMatrix x, int n, int d){
+LogicalMatrix discrete_grammat_rcpp(const IntegerMatrix x, int n, int d){
   int tmp = 0;
-  NumericMatrix K(n,n);
+  LogicalMatrix K(n,n);
   for(int i = 0; i < n; ++i){
     int j = i;
     while(j < n){
       for(int l = 0; l < d; ++l){
         tmp += (x(i,l)==x(j,l));
       }
-      K(i,j) = double(tmp==d);
+      K(i,j) = (tmp==d);
       K(j,i) = K(i,j);
       tmp = 0;
       ++j;
@@ -41,24 +41,8 @@ NumericMatrix discrete_grammat_rcpp(NumericMatrix x, int n, int d){
   return K;
 }
 
-
 // [[Rcpp::export]]
-NumericMatrix shuffle_grammat_rcpp(NumericMatrix K, NumericVector perm, int n){
-  NumericMatrix Kperm(n,n);
-  for(int i = 0; i < n; ++i){
-    int j = i;
-    while(j < n){
-      Kperm(i,j) = K(perm[i], perm[j]);
-      Kperm(j,i) = Kperm(i,j);
-      ++j;
-    }
-  }
-  return Kperm;
-}
-
-
-// [[Rcpp::export]]
-double median_bandwidth_rcpp(NumericMatrix x, int n, int d){
+double median_bandwidth_rcpp(const NumericMatrix x, int n, int d){
   int len = n;
   if(n > 1000){
     len = 1000;
